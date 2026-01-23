@@ -1,2 +1,2 @@
-# Football_KPI
-# Spatio-temporal analysis in football and team sports. Creating KPIs and new defensive metrics
+# ModellingFootball
+# Research plan on mathematical modelling and spatio-temporal analysis of football and team sports
