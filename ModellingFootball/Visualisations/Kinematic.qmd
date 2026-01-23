@@ -1,0 +1,244 @@
+---
+title: "Varios"
+author: 
+  name: "Cesar Catalan"
+  orcid:  0000-0002-6602-174X 
+  email: cecapa2@doctor.upv.es
+  affiliations: "IUMPA. Instituto Universitario de Matemática Pura y Aplicada"
+version: 1.0
+date: July 2025
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-expand: 3
+    toc-title: Contents
+    number-sections: true
+    code-line-numbers: true #numera las líneas de código
+    theme: materia #cosmo #sandstone #journal #litera
+    html-math-method: katex #para los entornos matematicos ver que render utilizar
+     #css: journal.css (por si queremos añadir uno propio)
+    df-print: kable #Para presentar tablas con dataframes
+    code-fold: false #Para visualizar/escondeer el código inicialmente
+    code-summary: "Show the code"
+    tbl-cap-location: top #Ubicacion titulo tablas
+    smooth-scroll: true # Enable smooth scrolling within the page
+    code-overflow: scroll #wrap Scroll code blocks that exceed width or Wrap lines
+execute:
+  echo: true       # Muestra el código fuente en el documento final.
+  output: true     #  Muestra el resultado de la ejecución del código en el documento final.
+  error: true      # Muestra los mensajes de error generados por la ejecución del código.
+  warning: false    # No muestra los mensajes de advertencia generados por la ejecución del código.
+  #fig-width: ancho  # Ajusta la anchura de las figuras generadas por los bloques de código a ancho.
+  #fig-height: alto  # Ajusta la altura de las figuras generadas por los bloques de código a alto.
+  cache: false       # Guarda en caché los resultados de la ejecución de los bloques de código.
+  enable: false     # Deshabilita la ejecución de los bloques de código.
+  include: true    #ejecuta los include que hemos ido añadiendo 
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# CARGA DE DATOS
+
+
+
+```{r}
+#| format:
+#|  html: 
+#|    code-fold: true
+#|    code-summary: "Show the code"
+#|    code-tools: true
+
+# R version: R-4.4.2 (OK)
+# R version: R-4.5.1 (Necesary for ggstream package)
+# Necesary compatible Rtool (4.5.6608) with R-4.5.1. Version 4.4.6459 doesn't wotk 
+# RStudio version: 2024.12.0 Build 467
+# Quarto version: 
+
+  ########## PAQUETES EXCLUSIVOS PARA EL SIMULADOR ###########
+                    ##REVISAR##
+#   # instalamos el paquete ggsoccer para dibujar campos de fútbol y sus jugadores
+# remotes::install_github("torvaney/ggsoccer")
+# install.packages("ggsoccer")
+# library(ggsoccer)
+# if(!require(gganimate))install.packages("gganimate");library("gganimate")
+# if(!require(av))install.packages("av");library("av")
+#   # El siguiente paquete es necesario para utilizar las transformaciones de poligonos en el animate y ggforce
+# devtools::install_github('thomasp85/transformr')  # https://github.com/thomasp85/transformr
+#   # Este package es para crear formatos GIF
+# if(!require(gifski))install.packages("gifski");library("gifski")
+
+                   ##REVISAR##
+
+  ########## PAQUETES UTILIZADOS EN KPIs.qmd ################
+
+if(!require(here))install.packages("here");library("here")
+if(!require(psych))install.packages("psych");library("psych")
+if(!require(tidyverse))install.packages("tidyverse");library("tidyverse")
+if(!require(reshape2))install.packages("reshape2");library("reshape2")
+if(!require(readr))install.packages("readr");library("readr") #para usar la funci?n read.file()
+if(!require(readtext))install.packages("readtext");library("readtext")  #para poder leer el archivo
+if(!require(XML))install.packages("XML");library("XML") #para leer archivos .xml y ejecutar FCrSTATS
+if(!require(xml2))install.packages("xml2");library("xml2")  #para leer archivos .xml
+if(!require(dplyr))install.packages("dplyr");library("dplyr") #para ordenar archivos y manipular datos
+if(!require(purrr))install.packages("purrr");library("purrr") #para manipular datos
+if(!require(e1071))install.packages("e1071");library("e1071") #para calcular Kurtosis, Fisher, etc.
+if(!require(stats))install.packages("stats");library("stats") #para calculo de regresiones lineales
+if(!require(Metrics))install.packages("Metrics");library("Metrics") #para calculo de RMSE
+if(!require(ggtern))install.packages("ggtern");library("ggtern")  #para el calculo de funciones de densidad weighted NO PARECE FUNCIONAR!!!!
+#para graficos
+if(!require(ggplot2))install.packages("ggplot2");library("ggplot2") #para representar graficos de varias variables
+if(!require(ggpubr))install.packages("ggpubr");library("ggpubr")  #para combinar varios ggplots
+if(!require(ggstream))install.packages("ggstream");library("ggstream")  #para graficos tipo stream
+if(!require(ggExtra))install.packages("ggExtra");library("ggExtra")  #para graficos tipo marginal
+if(!require(gridExtra))install.packages("gridExtra");library("gridExtra") #for adding special plots to ggplot2.
+if(!require(scales))install.packages("scales");library("scales")  #para modificar las escalas de los ejes en ggplot2
+if(!require(raster))install.packages("raster");library("raster")  #to create maps
+if(!require(plotly))install.packages("plotly");library("plotly")  #?3D plots surface. "plot_ly()"
+if(!require(listviewer))install.packages("listviewer");library("listviewer") #para ver los typos de trazas en plotly
+# schema(jsonedit = interactive()) esta instruccion se usa para mostrar las propiedades de plotly
+if(!require(viridis))install.packages("viridis");library("viridis") #color scales
+if(!require(RColorBrewer))install.packages("RColorBrewer");library("RColorBrewer")  #color package
+# scale_fill_brewer() for box plot, bar plot, violin plot, dot plot, etc
+# scale_color_brewer() for lines and points
+if(!require(hrbrthemes))install.packages("hrbrthemes");library("hrbrthemes")  #themas
+if(!require(ggthemes))install.packages("ggthemes");library("ggthemes")  #para variar los temas de los gráficos
+if(!require(ggforce))install.packages("ggforce");library("ggforce") #para dibujar sobre ggplot (voronoi, circle, etc..)
+if(!require(latex2exp))install.packages("latex2exp");library("latex2exp") #para utilizar latex en gráficos y expresiones
+if(!require(fmsb))install.packages("fmsb");library("fmsb")  #para graficos de radar y spider
+if(!require(ggrepel))install.packages("ggrepel");library("ggrepel") #para repeler texto en gráficos
+if(!require(raster))install.packages("raster");library("raster")  #to create maps
+if(!require(grid))install.packages("grid");library("grid")  # para dibujar
+
+if(!require(jsonlite))install.packages("jsonlite");library("jsonlite")  # para trabajr con archivos .json
+if(!require(xml2))install.packages("xml2");library("xml2")  # para trabajr con archivos .json
+if(!require(rmarkdown))install.packages("rmarkdown");library("rmarkdown") # para trabajar con Quarto
+if(!require(knitr))install.packages("knitr");library("knitr")  # para trabajar con tabas en html
+#if(!require(kableExtra))install.packages("kableExtra");library("kableExtra")  # para trabajar con tabas en html
+
+if(!require(chron))install.packages("chron");library("chron")  # para trabajar con variables cronológicas de tiempo
+
+#if(!require(SparkR))install.packages("SparkR");library("SparkR")  # para calcular el acos()
+# if(!require(igraph))install.packages("igraph");library("igraph")  # para grafos y network diagrams
+
+```
+
+# OBTAINING DATA OF THE DYNAMIC MODEL
+
+Obtenemos los dataframes para la simulación. Este código solo lo debemos ejecutar en caso de no haber ejecutado el archivo principal KPIs.qmd
+
+```{r}
+#| label: Global variables and dataframes
+#| eval: false
+#| code-fold: true
+#| include: false
+
+  #Variables de path ya definidas en KPIs.qmd
+pathDataOrig <- "Sample_Game_3/"
+pathimages <- "KPIsImages/"
+pathvideos <- "KPIsVideos/"
+pathdata  <- "KPIsData/"
+
+  #Variables globales ya definidas en KPIs.qmd
+
+    ####################################################################
+    # Declaracion de las variables GLOBALES r, h, k, Amin, Amax, medidas del campo, etc.
+    ###################################################################
+  # Frame frequency: 25 frames/s
+h<-25 
+  #radius for the dinamical model: 5 meters
+r<-5
+  #Coef. of influence area
+k= pi/3+sqrt(3)/2
+  #Miximal influence area
+Amin= (pi-k)*r^2
+  #Maximal influence area
+Amax=pi*r^2
+  #Ratio Amin/Amax
+Rate <- Amin/Amax
+  #Equivalent radious for Pab. pi*req^2=Pab -> req=(Pab/pi)^1/2
+
+# Load dataframes
+
+#METADATA
+Meta <- readRDS(str_c(pathdata,"Meta.rds"))
+
+  #PLAYERS
+PLAYER <- readRDS(str_c(pathdata,"PLAYER.rds"))
+
+  #EVENTS
+EVENT <- readRDS(str_c(pathdata,"EVENT.rds"))
+EVENT_lost <- readRDS(str_c(pathdata,"EVENT_Lost.rds"))
+EVENT_lost2 <- readRDS(str_c(pathdata,"EVENT_Lost2.rds"))
+EVENT_BallLost <- readRDS(str_c(pathdata,"EVENT_BallLost.rds"))
+EVENT_CornerKick <- readRDS(str_c(pathdata,"EVENT_CornerKick.rds"))
+EVENT_throwIn <- readRDS(str_c(pathdata,"EVENT_throwIn.rds"))
+
+  #FRAMES
+nFr_Players_a <- readRDS(str_c(pathdata,"nFr_Players_a.rds"))
+nFr_Players_b <- readRDS(str_c(pathdata,"nFr_Players_b.rds"))
+nFr_Playersab <- readRDS(str_c(pathdata,"nFr_Players_ab.rds"))
+
+  #KINEMATIC
+KINEM <- readRDS(str_c(pathdata,"KINEM.rds"))
+
+  #DYNAMICS
+# DYNAM <- readRDS(str_c(pathdata,"DYNAM.rds"))
+# DYNAM_a <- readRDS(str_c(pathdata,"DYNAM_a.rds"))
+# DYNAM_b <- readRDS(str_c(pathdata,"DYNAM_b.rds"))
+# DYNAM_ab <- readRDS(str_c(pathdata,"DYNAM_ab.rds"))
+# DYNAM_AB <- readRDS(str_c(pathdata,"DYNAM_AB.rds"))
+# DYNAM_BA <- readRDS(str_c(pathdata,"DYNAM_BA.rds"))
+# DYNAM_CP_AB <- readRDS(str_c(pathdata,"DYNAM_CP_AB.rds"))
+
+  # pitch dimensions 
+fPitchXSizeMeters <-Meta %>% filter(Description=="WidthFieldsize") %>% select(Value)
+fPitchYSizeMeters <-Meta %>% filter(Description=="HeigthFieldsize") %>% select(Value)
+fPitchXSizeMeters <- round(as.numeric(fPitchXSizeMeters),6)
+fPitchYSizeMeters <- round(as.numeric(fPitchYSizeMeters),6)
+  # mean frames
+Fr_1I<-361  # Start of the 1st period
+Fr_1F<-69594 # End of the 1st period 
+Fr_2I<-70090 # Start of the 2nd period
+Fr_2F<-143553 # End of the 2nd period
+Fr_I_Act<-Fr_1I   #Frame Inicio seleccionado para el calculo
+Fr_F_Act<-Fr_2F  #Fr_2F   #Frame Final seleccionado para el calculo
+Fr_Total<-as.integer(Fr_F_Act)-as.integer(Fr_I_Act)+1  #Frame usados para el calculo
+
+```
+
+# KINEMATIC
+
+Este código es para validar la integridad de los datos a efectos cinematicos y comprobar los rangos de velocidades obtenidas en el cálculo a partir de los datos del traking.
+
+La velocidad máxima en sprints de 100 metros al que el ser humano puede llegar sin ayudas podemos estimarla a partir del record del mundo actual conseguido por Usain Bolt en el Campeonato Mundial de Atletismo de 2009 en Berlín, donde corrió a una velocidad media de 37,578 km/h (10,44 m/s),alcanzando su pico máximo de velocidad entre los 60 y 80 metros fue de 44.72 km/h (12,42 m/s)
+
+El traking obtenido a frecuencias de 25 frames/s 
+
+```{r}
+#| label: Global variables and dataframes
+#| eval: false
+#| code-fold: true
+#| include: false
+
+#Seleccionamos las velocidades de los jugadores cuando el balón está alive
+velocidades <- KINEM %>% filter(Bstatus=="Alive" & team!="C") %>% select(v)
+vel_summary <- summary(velocidades)
+vel_summary
+vel_totales <- count(velocidades)
+vel_altas <- velocidades %>% filter(v>20)
+vel_altas <- count(vel_altas) 
+
+
+vel_summary
+
+# Resumen:
+# hay 2143592 entradas de velocidad perteneciente a los jugadores, de las que solo 552 (0.000258 %) son > 12m/s
+# por encima de 20m/s existen solo un total de 24 (0.000011 %)
+# velocidad máxima alcanzada: 50.11 m/s 
+
+
+```
+
+

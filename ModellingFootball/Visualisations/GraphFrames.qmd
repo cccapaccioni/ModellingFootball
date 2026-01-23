@@ -1,0 +1,284 @@
+---
+#title: Graph Frames
+#author: Cesar Catalan
+#format: html
+#editor: visual
+editor_options: 
+  chunk_output_type: console
+chunk_output_type: console
+---
+
+### Players and frames
+
+Análisis temporal de los jugadores durante el partido.
+
+La @fig-graph1-frames muestra un gráfico de barras circular con el análisis temporal de la permanencia de los jugadores en el terreno de juego durante el partido. Es importante realizar este análisis para verificar la integridad de los datos calculados en el tracking. Por ello hemos optado por representar los frames y no los minutos de juego. Los $18$ jugadores del **equipo B** han participado en el partido con un total de participación de $1.071.796$ frames ( $714,53$ minutos), al igual que los $17$ jugadores del **equipo A** que suman también $1.071.796$ frames. La desigualdad entre los dos equipos se produce cuando han existido expulsiones o tiempos en los que algún jugador haya permanecido fuera del terreno de juego y estando el balón en juego.
+
+Por otra parte, observamos que **el balón ha estado en juego** durante un total de $97.436$ frames ($64,96$ minutos), por lo tanto la igualdad $\frac{1.071.796}{11}=97.436$ frames/jugador debe cumplirse al haber permanecido todos los jugadores en activo sobre el terreno de juego.
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph1-frames
+#| fig-cap: "Players and ball frames reference"
+
+#source ("Packages.r") 
+
+########################################################################## 
+# Graphic Frame analysis. DATA
+##########################################################################
+
+Time_summary <- TRACK %>% group_by(player,player_shirt,Bowing,team,Bstatus) %>% summarise(Frames=n(),time_s=n()/(25),time_m=round(n()/(25*60),2), .groups = 'drop') %>% ungroup()
+
+Time_summary_AB <- Time_summary %>% filter(Bstatus=="Alive") %>% group_by(player,team,Bowing) %>% summarise(Frames=sum(Frames),.groups = 'drop') %>% ungroup()
+T1_sum_AB <- Time_summary_AB %>% group_by(team) %>% summarise(TotalFrames = sum(Frames)) %>% ungroup() %>% mutate(angle = c(115,-65,20),id=c(1,2,3)) 
+
+Time_summary_A <- Time_summary_AB %>% filter(Bowing=="Team A")
+Time_summary_B <- Time_summary_AB %>% filter(Bowing=="Team B")
+
+Time_summary <- Time_summary %>% filter(Bstatus=="Alive") %>% group_by(player,player_shirt,team) %>% summarise(Frames=sum(Frames),.groups = 'drop') %>% ungroup() 
+
+Time_summary <- Time_summary %>% arrange(Frames)
+
+t_Game_alive <- as.numeric(TRACK %>% filter(team=="C",Bstatus=="Alive",(((Fr>=Fr_1I) & (Fr<=Fr_1F)) |((Fr>=Fr_2I) & (Fr<=Fr_2F))) ) %>% count())
+t_Game_total <- TRACK %>% filter( (((Fr>=Fr_1I) & (Fr<=Fr_1F)) |((Fr>=Fr_2I) & (Fr<=Fr_2F))))
+t_Game_total <- n_distinct(t_Game_total$Fr)
+t_Game_dead <- t_Game_total - t_Game_alive
+
+T1_sum <- TRACK %>% filter(Bstatus=="Alive",(((Fr>=Fr_1I) & (Fr<=Fr_1F)) |((Fr>=Fr_2I) & (Fr<=Fr_2F)))) %>% filter(team != "C") %>% distinct(Fr,Bowing) %>% group_by(Bowing) %>% summarise(Possession=n() ) %>% ungroup()
+T1_sum <- T1_sum %>% mutate(totalFr = sum(Possession),fraction=round(Possession/totalFr,2))
+T1_sum <- T1_sum %>% 
+  add_row(Bowing="Dead",Possession=t_Game_dead,totalFr=t_Game_total,fraction=round(t_Game_dead/t_Game_total,2)) %>% 
+  add_row(Bowing="Alive",Possession=t_Game_alive,totalFr=t_Game_total,fraction=round(t_Game_alive/t_Game_total,2))
+
+
+
+########################################################################## 
+# Graph1a - Graphic Frame analysis
+##########################################################################
+#Barpor circular utilizado de Chart (https://r-graph-gallery.com/297-circular-barplot-with-groups.html)
+
+# Set a number of 'empty bar' to add at the end of each group
+empty_bar <- 2
+to_add <- data.frame( matrix(NA, empty_bar*nlevels(as.factor(Time_summary$team)), ncol(Time_summary)) )
+colnames(to_add) <- colnames(Time_summary)
+to_add$team <- rep(levels(as.factor(Time_summary$team)), each=empty_bar)
+Time_summary <- rbind(Time_summary, to_add)
+Time_summary <- Time_summary %>% arrange(team)
+Time_summary$id <- seq(1, nrow(Time_summary))
+ 
+# Get the name and the y position of each label
+label_data <- Time_summary
+number_of_bar <- nrow(label_data)
+#aqui poniamos 90-360*....
+angle <- 90 - 360 * (label_data$id-0.5) /number_of_bar     # I substract 0.5 because the letter must have the angle of the center of the bars. Not extreme right(1) or extreme left (0)
+label_data$hjust <- ifelse( angle < -75, 1, 0) #Aqui poniamos -90,1,0
+label_data$angle <- ifelse(angle < -75, angle+180, angle) #Aqui poniamos < -90
+ 
+# prepare a data frame for base lines
+base_data <- Time_summary %>% 
+  group_by(team) %>% 
+  summarize(start=min(id), end=max(id) - empty_bar) %>% 
+  rowwise() %>% 
+  mutate(title=mean(c(start, end)))
+ 
+# prepare a data frame for grid (scales)
+grid_data <- base_data
+grid_data$end <- grid_data$end[ c( nrow(grid_data), 1:nrow(grid_data)-1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1,]
+ 
+# Make the plot
+p_Time_summary <- ggplot(Time_summary, aes(x=as.factor(id), y=Frames, fill=team)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  
+  geom_bar(aes(x=as.factor(id), y=Frames, fill=team), stat="identity", alpha=0.8) +
+  
+  # Add a val=100/75/50/25 lines. I do it at the beginning to make sur barplots are OVER it.
+  # geom_segment(data=grid_data, aes(x = end, y = 80, xend = start, yend = 80), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  # geom_segment(data=grid_data, aes(x = end, y = 60, xend = start, yend = 60), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  # geom_segment(data=grid_data, aes(x = end, y = 40, xend = start, yend = 40), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  # geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  
+  # Add text showing the value of each 100/75/50/25 lines
+  #annotate("text", x = rep(max(Time_summary$id),4), y = c(20, 40, 60, 80), label = c("20", "40", "60", "80") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +
+  
+  geom_bar(aes(x=as.factor(id), y=Frames, fill=team), stat="identity", alpha=0.5) +
+  ylim(-40000,110000) + #ylim(-100,120) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1,4), "cm") 
+  ) +
+  coord_polar() + 
+  #Player labels
+  geom_text(data=label_data, aes(x=id, y=Frames+5000, label=player_shirt, hjust=hjust+0.5), color="black", fontface="bold",alpha=0.8, size=4, angle= label_data$angle, inherit.aes = FALSE ) +
+  #Frame labels
+  geom_text(data=label_data, aes(x=id, y=Frames*0.40, label=Frames, hjust=hjust), color="black", fontface="plain",alpha=0.8, size=4, angle= label_data$angle, inherit.aes = FALSE ) +
+  #Total Frames labels
+  geom_text(data=T1_sum_AB, aes(x=c(25,5,37), y=c(-10000,-15000,-15000), label=T1_sum_AB$TotalFrames, hjust=0), color="black", fontface="plain",alpha=0.8, size=5, angle= T1_sum_AB$angle, inherit.aes = FALSE ) +
+  # Add base line information
+  geom_segment(data=base_data, aes(x = start, y = -1000, xend = end, yend = -1000), colour = "black", alpha=0.8, size=0.6 , inherit.aes = FALSE ) +
+  geom_segment(data=base_data, aes(x = 0, y = 97450, xend = end+3, yend = 97450), linetype = 2, colour = "grey", alpha=0.7, size=0.4 , inherit.aes = FALSE ) +
+  #(data=base_data, aes(x = title, y = -27000, label=team), hjust=c(1,1,0,0), colour = "black", alpha=0.8, size=4, fontface="bold", inherit.aes = FALSE)
+  geom_text(data=base_data, aes(x = title, y = -5000, label=team),colour = "black", alpha=0.8, size=4, fontface="bold", inherit.aes = FALSE)
+ 
+p_Time_summary
+
+#EVENT |> xxxxx(p_Time_summary)
+```
+
+### Players, frames and possession
+
+Análisis temporal de posesión del balón de los jugadores durante el partido.
+
+La @fig-graph2-frames muestra un gráfico de barras circular similar al de la @fig-graph1-frames con el análisis temporal de la permanencia de los jugadores en el terreno de juego durante el partido pero en esta ocasión discriminadno que equipo dispone de la posesión del balón en cada momneto.
+
+Si observamos los datos del balón comprobamos como $50.404$ frames pertenecen al tiempo activo de juego cuando la posesión era del **equipo B** ($52\%$) y $47.032$ frames pertenecen al tiempo activo de juego con posesión del **equipo A** ($48\%$). Comprobamos que la suma $50404 + 47.032 = 97.436$ frames totales de tiempo con el balón en juego.
+
+También hemos incorporado en este gráfico debjado de los datos del balón el valor de $68\%$ que corresponde al tiempo en que el balón ha estado en juego ($97.436$ frames) sobre el total del partido ($142.698$ frames), con este dato disponemos de toda la información necesaria para comprobar la integridad y vericidad de los datos que hemos preparado para aplicar nuestro modelo de presiones dinámicos.
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph2-frames
+#| fig-cap: "Players and ball frames reference with possession"
+
+########################################################################## 
+# Graphic "fig-graph2-frames" Players & frames & possession
+##########################################################################
+
+Time_summary <- TRACK %>% group_by(player,player_shirt,Bowing,team,Bstatus) %>% summarise(Frames=n(),time_s=n()/(25),time_m=round(n()/(25*60),2), .groups = 'drop') %>% ungroup()
+
+Time_summary_AB <- Time_summary %>% filter(Bstatus=="Alive") %>% group_by(player,player_shirt,team,Bowing) %>% summarise(Frames=sum(Frames),.groups = 'drop') %>% ungroup()
+
+Time_summary_A <- Time_summary_AB %>% filter(Bowing=="Team A")
+Time_summary_B <- Time_summary_AB %>% filter(Bowing=="Team B")
+
+Time_summary <- Time_summary %>% filter(Bstatus=="Alive") %>% group_by(player,team) %>% summarise(Frames=sum(Frames),.groups = 'drop') %>% ungroup() 
+
+Time_summary <- Time_summary %>% arrange(Frames)
+
+t_Game_alive <- as.numeric(TRACK %>% filter(team=="C",Bstatus=="Alive",(((Fr>=Fr_1I) & (Fr<=Fr_1F)) |((Fr>=Fr_2I) & (Fr<=Fr_2F))) ) %>% count())
+t_Game_total <- TRACK %>% filter( (((Fr>=Fr_1I) & (Fr<=Fr_1F)) |((Fr>=Fr_2I) & (Fr<=Fr_2F))))
+t_Game_total <- n_distinct(t_Game_total$Fr)
+t_Game_dead <- t_Game_total - t_Game_alive
+
+T1_sum <- TRACK %>% filter(Bstatus=="Alive",(((Fr>=Fr_1I) & (Fr<=Fr_1F)) |((Fr>=Fr_2I) & (Fr<=Fr_2F)))) %>% filter(team != "C") %>% distinct(Fr,Bowing) %>% group_by(Bowing) %>% summarise(Possession=n() ) %>% ungroup()
+T1_sum <- T1_sum %>% mutate(totalFr = sum(Possession),fraction=round(Possession/totalFr,2))
+T1_sum <- T1_sum %>% 
+  add_row(Bowing="Dead",Possession=t_Game_dead,totalFr=t_Game_total,fraction=round(t_Game_dead/t_Game_total,2)) %>% 
+  add_row(Bowing="Alive",Possession=t_Game_alive,totalFr=t_Game_total,fraction=round(t_Game_alive/t_Game_total,2))
+T1_sum <- T1_sum %>% filter(Bowing!="Dead") #lo quitamos para grafiar correctamente el dato de alive
+
+#Barpor circular utilizado de Chart (https://r-graph-gallery.com/297-circular-barplot-with-groups.html)
+
+# Set a number of 'empty bar' to add at the end of each group
+empty_bar_A <- 2
+to_add_A <- data.frame( matrix(NA, empty_bar_A*nlevels(as.factor(Time_summary_A$team)), ncol(Time_summary_A)) )
+colnames(to_add_A) <- colnames(Time_summary_A)
+to_add_A$team <- rep(levels(as.factor(Time_summary_A$team)), each=empty_bar_A)
+Time_summary_A <- rbind(Time_summary_A, to_add_A)
+Time_summary_A <- Time_summary_A %>% arrange(team,Frames)
+Time_summary_A$id <- seq(1, nrow(Time_summary_A))
+ 
+empty_bar_B <- empty_bar_A
+to_add_B <- data.frame( matrix(NA, empty_bar_B*nlevels(as.factor(Time_summary_B$team)), ncol(Time_summary_B)) )
+colnames(to_add_B) <- colnames(Time_summary_B)
+to_add_B$team <- rep(levels(as.factor(Time_summary_B$team)), each=empty_bar_B)
+Time_summary_B <- rbind(Time_summary_B, to_add_B)
+Time_summary_B <- Time_summary_B %>% arrange(team,Frames)
+Time_summary_B$id <- seq(1, nrow(Time_summary_B))
+
+# Get the name and the y position of each label
+label_data_A <- Time_summary_A
+number_of_bar_A <- nrow(label_data_A)
+angle_A <- 90 - 360 * (label_data_A$id-0.5) /number_of_bar_A     # I substract 0.5 because the letter must have the angle of the center of the bars. Not extreme right(1) or extreme left (0)
+label_data_A$hjust <- ifelse( angle_A < -75, 1, 0)
+label_data_A$angle <- ifelse(angle_A < -75, angle_A+180, angle_A) #Aqui poniamos < -90
+
+# solo se usa para la etiqueta de los frames Team B 
+label_data_B <- Time_summary_B
+number_of_bar_B <- nrow(label_data_B)
+angle_B <- 90 - 360 * (label_data_B$id-0.5) /number_of_bar_B     # I substract 0.5 because the letter must have the angle of the center of the bars. Not extreme right(1) or extreme left (0)
+label_data_B$hjust <- ifelse( angle_B < -75, 1, 0)
+label_data_B$angle <- ifelse( angle_B < -75, angle_B+180, angle_B )
+
+# prepare a data frame for base lines
+base_data_A <- Time_summary_A %>% filter(Bowing=="Team A") %>%
+  group_by(team) %>% 
+  summarize(start=min(id), end=max(id) - empty_bar_A) %>% 
+  rowwise() %>% 
+  mutate(title=mean(c(start, end)))
+base_data_B <- Time_summary_A %>% filter(Bowing=="Team A") %>%
+  group_by(team) %>% 
+  summarize(start=min(id), end=max(id) - empty_bar_A) %>% 
+  rowwise() %>% 
+  mutate(title=mean(c(start, end)))
+
+ 
+# prepare a data frame for grid (scales)
+grid_data <- base_data_A
+grid_data$end <- grid_data$end[ c( nrow(grid_data), 1:nrow(grid_data)-1)] + 1
+grid_data$start <- grid_data$start - 1
+grid_data <- grid_data[-1,]
+ 
+# Make the plot
+p_Time_summaryAB <- ggplot(Time_summary_A, aes(x=as.factor(id), y=Frames, fill=team)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  
+  #We extend the bars to all Frames (Team A + Team B)
+  geom_bar(aes(x=as.factor(id), y=Frames+Time_summary_B$Frames, fill=team), stat="identity", alpha=0.5) +
+  #dibujamos las barras de los Frames con posesion team A
+  geom_bar(aes(x=as.factor(Time_summary_A$id), y=Time_summary_A$Frames, fill=Time_summary_A$team), stat="identity", alpha=0.8) +  
+  
+  # Add a val=100/75/50/25 lines. I do it at the beginning to make sur barplots are OVER it.
+  # geom_segment(data=grid_data, aes(x = end, y = 80, xend = start, yend = 80), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  # geom_segment(data=grid_data, aes(x = end, y = 60, xend = start, yend = 60), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  # geom_segment(data=grid_data, aes(x = end, y = 40, xend = start, yend = 40), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  # geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  
+  # Add text showing the value of each 100/75/50/25 lines
+  #annotate("text", x = rep(max(Time_summary$id),4), y = c(20, 40, 60, 80), label = c("20", "40", "60", "80") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +
+  
+  #geom_bar(aes(x=as.factor(id), y=Time_summary_B$Frames, fill=team), stat="identity", alpha=0.5) +
+  
+  ylim(-40000,120000) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1,4), "cm") 
+  ) +
+  coord_polar() +
+  # We label the players
+  geom_text(data=label_data_A, aes(x=id, y=Frames+Time_summary_B$Frames+8000, label=player_shirt, hjust=hjust+0.5), color="black", fontface="plain",alpha=0.8, size=4, angle= label_data_A$angle, inherit.aes = FALSE ) +
+  # We label the frames for Team A possession
+  geom_text(data=label_data_A, aes(x=id, y=Frames/4, label=Frames, hjust=hjust), color="black", fontface="plain",alpha=0.8, size=4, angle= label_data_A$angle, inherit.aes = FALSE ) +
+  # We label the frames for Team B possession
+  geom_text(data=label_data_B, aes(x=id, y=(Frames+Time_summary_A$Frames)*2/3, label=Frames, hjust=hjust), color="black", fontface="plain",alpha=0.8, size=4, angle= label_data_A$angle, inherit.aes = FALSE ) +
+
+    # Add base line information
+  geom_segment(data=base_data_A, aes(x = start, y = -1000, xend = end+3, yend = -1000), colour = "black", alpha=0.8, size=0.5 , inherit.aes = FALSE ) +
+  geom_segment(data=base_data_A, aes(x = 0, y = 97450, xend = end+5, yend = 97450), linetype = 2, colour = "grey", alpha=0.5, size=0.4 , inherit.aes = FALSE ) +
+  geom_segment(data=base_data_A, aes(x = 0, y = 50404, xend = end+5, yend = 50404), linetype = 2, colour = "grey", alpha=0.5, size=0.4 , inherit.aes = FALSE ) +
+  #(data=base_data, aes(x = title, y = -27000, label=team), hjust=c(1,1,0,0), colour = "black", alpha=0.8, size=4, fontface="bold", inherit.aes = FALSE)
+    #Team labels
+  geom_text(data=base_data_A, aes(x = title, y = -5000, label=team),colour = "black", alpha=0.8, size=4, fontface="bold", inherit.aes = FALSE)+
+  #Total possession Frames labels
+  geom_text(data=T1_sum, aes(x=c(25,5,37), y=c(-10000,-15000,-15000), label=paste(T1_sum$fraction*100,"%"), hjust=0), color="black", fontface="plain",alpha=0.8, size=5, angle= c(115,-65,20), inherit.aes = FALSE )
+#   #Team possessions
+#   geom_text(data=T1_sum, aes(x = base_data_A$title, y = -20000, label=Possession),colour = "black", alpha=0.8, size=2, fontface="plain", inherit.aes = FALSE)+
+# #Team labels 2
+#   geom_text(data=T1_sum, aes(x = base_data_A$title, y = -10000, label = T1_sum$fraction),colour = "black", alpha=0.8, size=2, fontface="plain", inherit.aes = FALSE)
+
+p_Time_summaryAB
+
+```
+
+::: {layout.ncol="2"}
+![Player frames](KPIsImages/Image1_FramesPlayers.png){#fig-playerframes .lightbox fig-alt="Frames of players"} ![Player frames](KPIsImages/Image2_FramesPlayersPossession.png){#fig-playerframespossession .lightbox fig-alt="Frames of players by possesion"}
+:::

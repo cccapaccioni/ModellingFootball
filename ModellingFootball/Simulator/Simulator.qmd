@@ -1,0 +1,975 @@
+---
+title:  "A mathematical model to study defensive metrics in football: individual, collective and game pressures"
+subtitle: "SIMULATOR for the Dynamical System of Pressures."
+author: 
+  name: "Cesar Catalan"
+  orcid:  0000-0002-6602-174X 
+  email: cecapa2@doctor.upv.es
+  affiliations: "IUMPA. Instituto Universitario de Matemática Pura y Aplicada"
+keywords:  football, soccer, modelling, pressure, dynamical system
+abstract: We present a complete model for the calculation of defensive dynamic pressures that is able to evaluate and analyse the movement of defensive pressures from a spatio-temporal point of view in football, associating it with the equivalence to a Dynamic System of Variable Mass Particles.
+version: 1.0
+date: July 2025
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-expand: 3
+    toc-title: Contents
+    number-sections: true
+    code-line-numbers: true #numera las líneas de código
+    theme: materia #cosmo #sandstone #journal #litera
+    html-math-method: katex #para los entornos matematicos ver que render utilizar
+     #css: journal.css (por si queremos añadir uno propio)
+    df-print: kable #Para presentar tablas con dataframes
+    code-fold: false #Para visualizar/escondeer el código inicialmente
+    code-summary: "Show the code"
+    tbl-cap-location: top #Ubicacion titulo tablas
+    smooth-scroll: true # Enable smooth scrolling within the page
+    code-overflow: scroll #wrap Scroll code blocks that exceed width or Wrap lines
+execute:
+  echo: true       # Muestra el código fuente en el documento final.
+  output: true     #  Muestra el resultado de la ejecución del código en el documento final.
+  error: true      # Muestra los mensajes de error generados por la ejecución del código.
+  warning: false    # No muestra los mensajes de advertencia generados por la ejecución del código.
+  #fig-width: ancho  # Ajusta la anchura de las figuras generadas por los bloques de código a ancho.
+  #fig-height: alto  # Ajusta la altura de las figuras generadas por los bloques de código a alto.
+  cache: false       # Guarda en caché los resultados de la ejecución de los bloques de código.
+  enable: false     # Deshabilita la ejecución de los bloques de código.
+  include: true    #ejecuta los include que hemos ido añadiendo 
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# PACKAGES
+
+```{r}
+#| format:
+#|  html: 
+#|    code-fold: true
+#|    code-summary: "Show the code"
+#|    code-tools: true
+
+# R version: R-4.4.2 (OK)
+# R version: R-4.5.1 (Necesary for ggstream package)
+# Necesary compatible Rtool (4.5.6608) with R-4.5.1. Version 4.4.6459 doesn't wotk 
+# RStudio version: 2024.12.0 Build 467
+# Quarto version: 
+
+  ########## PAQUETES EXCLUSIVOS PARA EL SIMULADOR ###########
+                    ##REVISAR##
+  # instalamos el paquete ggsoccer para dibujar campos de fútbol y sus jugadores
+remotes::install_github("torvaney/ggsoccer")
+install.packages("ggsoccer")
+library(ggsoccer)
+if(!require(gganimate))install.packages("gganimate");library("gganimate")
+if(!require(av))install.packages("av");library("av")
+  # El siguiente paquete es necesario para utilizar las transformaciones de poligonos en el animate y ggforce
+devtools::install_github('thomasp85/transformr')  # https://github.com/thomasp85/transformr
+  # Este package es para crear formatos GIF
+if(!require(gifski))install.packages("gifski");library("gifski")
+
+                   ##REVISAR##
+
+  ########## PAQUETES UTILIZADOS EN KPIs.qmd ################
+
+if(!require(here))install.packages("here");library("here")
+if(!require(psych))install.packages("psych");library("psych")
+if(!require(tidyverse))install.packages("tidyverse");library("tidyverse")
+if(!require(reshape2))install.packages("reshape2");library("reshape2")
+if(!require(readr))install.packages("readr");library("readr") #para usar la funci?n read.file()
+if(!require(readtext))install.packages("readtext");library("readtext")  #para poder leer el archivo
+if(!require(XML))install.packages("XML");library("XML") #para leer archivos .xml y ejecutar FCrSTATS
+if(!require(xml2))install.packages("xml2");library("xml2")  #para leer archivos .xml
+if(!require(dplyr))install.packages("dplyr");library("dplyr") #para ordenar archivos y manipular datos
+if(!require(purrr))install.packages("purrr");library("purrr") #para manipular datos
+if(!require(e1071))install.packages("e1071");library("e1071") #para calcular Kurtosis, Fisher, etc.
+if(!require(stats))install.packages("stats");library("stats") #para calculo de regresiones lineales
+if(!require(Metrics))install.packages("Metrics");library("Metrics") #para calculo de RMSE
+if(!require(ggtern))install.packages("ggtern");library("ggtern")  #para el calculo de funciones de densidad weighted NO PARECE FUNCIONAR!!!!
+#para graficos
+if(!require(ggplot2))install.packages("ggplot2");library("ggplot2") #para representar graficos de varias variables
+if(!require(ggpubr))install.packages("ggpubr");library("ggpubr")  #para combinar varios ggplots
+if(!require(ggstream))install.packages("ggstream");library("ggstream")  #para graficos tipo stream
+if(!require(ggExtra))install.packages("ggExtra");library("ggExtra")  #para graficos tipo marginal
+if(!require(gridExtra))install.packages("gridExtra");library("gridExtra") #for adding special plots to ggplot2.
+if(!require(scales))install.packages("scales");library("scales")  #para modificar las escalas de los ejes en ggplot2
+if(!require(raster))install.packages("raster");library("raster")  #to create maps
+if(!require(plotly))install.packages("plotly");library("plotly")  #?3D plots surface. "plot_ly()"
+if(!require(listviewer))install.packages("listviewer");library("listviewer") #para ver los typos de trazas en plotly
+# schema(jsonedit = interactive()) esta instruccion se usa para mostrar las propiedades de plotly
+if(!require(viridis))install.packages("viridis");library("viridis") #color scales
+if(!require(RColorBrewer))install.packages("RColorBrewer");library("RColorBrewer")  #color package
+# scale_fill_brewer() for box plot, bar plot, violin plot, dot plot, etc
+# scale_color_brewer() for lines and points
+if(!require(hrbrthemes))install.packages("hrbrthemes");library("hrbrthemes")  #themas
+if(!require(ggthemes))install.packages("ggthemes");library("ggthemes")  #para variar los temas de los gráficos
+if(!require(ggforce))install.packages("ggforce");library("ggforce") #para dibujar sobre ggplot (voronoi, circle, etc..)
+if(!require(latex2exp))install.packages("latex2exp");library("latex2exp") #para utilizar latex en gráficos y expresiones
+if(!require(fmsb))install.packages("fmsb");library("fmsb")  #para graficos de radar y spider
+if(!require(ggrepel))install.packages("ggrepel");library("ggrepel") #para repeler texto en gráficos
+if(!require(raster))install.packages("raster");library("raster")  #to create maps
+if(!require(grid))install.packages("grid");library("grid")  # para dibujar
+
+if(!require(jsonlite))install.packages("jsonlite");library("jsonlite")  # para trabajr con archivos .json
+if(!require(xml2))install.packages("xml2");library("xml2")  # para trabajr con archivos .json
+if(!require(rmarkdown))install.packages("rmarkdown");library("rmarkdown") # para trabajar con Quarto
+if(!require(knitr))install.packages("knitr");library("knitr")  # para trabajar con tabas en html
+#if(!require(kableExtra))install.packages("kableExtra");library("kableExtra")  # para trabajar con tabas en html
+
+if(!require(chron))install.packages("chron");library("chron")  # para trabajar con variables cronológicas de tiempo
+
+#if(!require(SparkR))install.packages("SparkR");library("SparkR")  # para calcular el acos()
+# if(!require(igraph))install.packages("igraph");library("igraph")  # para grafos y network diagrams
+
+```
+
+# OBTAINING DATA OF THE DYNAMIC MODEL
+
+Obtenemos los dataframes para la simulación. Este código solo lo debemos ejecutar en caso de no haber ejecutado el archivo principal KPIs.qmd
+
+```{r}
+#| label: Global variables and dataframes
+#| eval: false
+#| code-fold: true
+#| include: false
+
+  #Variables de path ya definidas en KPIs.qmd
+pathDataOrig <- "Sample_Game_3/"
+pathimages <- "KPIsImages/"
+pathvideos <- "KPIsVideos/"
+pathdata  <- "KPIsData/"
+
+  #Variables globales ya definidas en KPIs.qmd
+
+    ####################################################################
+    # Declaracion de las variables GLOBALES r, h, k, Amin, Amax, medidas del campo, etc.
+    ###################################################################
+  # Frame frequency: 25 frames/s
+h<-25 
+  #radius for the dinamical model: 5 meters
+r<-5
+  #Coef. of influence area
+k= pi/3+sqrt(3)/2
+  #Miximal influence area
+Amin= (pi-k)*r^2
+  #Maximal influence area
+Amax=pi*r^2
+  #Ratio Amin/Amax
+Rate <- Amin/Amax
+  #Equivalent radious for Pab. pi*req^2=Pab -> req=(Pab/pi)^1/2
+
+# Load dataframes
+
+#METADATA
+Meta <- readRDS(str_c(pathdata,"Meta.rds"))
+
+  #PLAYERS
+PLAYER <- readRDS(str_c(pathdata,"PLAYER.rds"))
+
+  #EVENTS
+EVENT <- readRDS(str_c(pathdata,"EVENT.rds"))
+EVENT_lost <- readRDS(str_c(pathdata,"EVENT_Lost.rds"))
+EVENT_lost2 <- readRDS(str_c(pathdata,"EVENT_Lost2.rds"))
+EVENT_BallLost <- readRDS(str_c(pathdata,"EVENT_BallLost.rds"))
+EVENT_CornerKick <- readRDS(str_c(pathdata,"EVENT_CornerKick.rds"))
+EVENT_throwIn <- readRDS(str_c(pathdata,"EVENT_throwIn.rds"))
+
+  #FRAMES
+nFr_Players_a <- readRDS(str_c(pathdata,"nFr_Players_a.rds"))
+nFr_Players_b <- readRDS(str_c(pathdata,"nFr_Players_b.rds"))
+nFr_Playersab <- readRDS(str_c(pathdata,"nFr_Players_ab.rds"))
+
+  #KINEMATIC
+KINEM <- readRDS(str_c(pathdata,"KINEM.rds"))
+
+  #DYNAMICS
+DYNAM <- readRDS(str_c(pathdata,"DYNAM.rds"))
+DYNAM_a <- readRDS(str_c(pathdata,"DYNAM_a.rds"))
+DYNAM_b <- readRDS(str_c(pathdata,"DYNAM_b.rds"))
+DYNAM_ab <- readRDS(str_c(pathdata,"DYNAM_ab.rds"))
+DYNAM_AB <- readRDS(str_c(pathdata,"DYNAM_AB.rds"))
+DYNAM_BA <- readRDS(str_c(pathdata,"DYNAM_BA.rds"))
+DYNAM_CP_AB <- readRDS(str_c(pathdata,"DYNAM_CP_AB.rds"))
+
+  # pitch dimensions 
+fPitchXSizeMeters <-Meta %>% filter(Description=="WidthFieldsize") %>% select(Value)
+fPitchYSizeMeters <-Meta %>% filter(Description=="HeigthFieldsize") %>% select(Value)
+fPitchXSizeMeters <- round(as.numeric(fPitchXSizeMeters),6)
+fPitchYSizeMeters <- round(as.numeric(fPitchYSizeMeters),6)
+  # mean frames
+Fr_1I<-361  # Start of the 1st period
+Fr_1F<-69594 # End of the 1st period 
+Fr_2I<-70090 # Start of the 2nd period
+Fr_2F<-143553 # End of the 2nd period
+Fr_I_Act<-Fr_1I   #Frame Inicio seleccionado para el calculo
+Fr_F_Act<-Fr_2F  #Fr_2F   #Frame Final seleccionado para el calculo
+Fr_Total<-as.integer(Fr_F_Act)-as.integer(Fr_I_Act)+1  #Frame usados para el calculo
+
+```
+
+## Selecting actions and frames
+
+```{r}
+#| label: Actions and frames
+#| echo: true
+#| code-fold: true
+
+# (A1) counter-attack
+E <- EVENT_lost2 %>% filter(Id==31)
+K <- KINEM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+D <- DYNAM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+
+
+# (A2) counter-attack
+E <- EVENT_lost2 %>% filter(Id==86)
+K <- KINEM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+D <- DYNAM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+
+# (A3) counter-attack
+E <- EVENT_lost2 %>% filter(Id==92)
+K <- KINEM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+D <- DYNAM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+
+# (B1) corner-kick
+E <- EVENT_CornerKick %>% filter(id==1)
+K <- KINEM %>% filter (Fr>=E$Fr[1] & (Fr<E$Fr[1]+25*5))
+D <- DYNAM %>% filter (Fr>=E$Fr[1] & (Fr<E$Fr[1]+25*5)) %>% mutate(id=1)
+
+# (C1) throw-in
+E <- EVENT_throwIn %>% filter(id==1)
+K <- KINEM %>% filter (Fr>=E$Fr[1] & (Fr<E$Fr[1]+25*5))
+D <- DYNAM %>% filter (Fr>=E$Fr[1] & (Fr<E$Fr[1]+25*5)) %>% mutate(id=1)
+
+```
+
+## Preparing pitch
+
+We use the **ggsoccer**\[\^6\] package which produce a pitch with apropiated dimensions and coordinates. \[\^6\]: <https://cran.r-project.org/web/packages/ggsoccer/ggsoccer.pdf>
+
+```{r}
+#| label: Preparing the pitch
+#| echo: true
+#| code-fold: true
+
+  #We can use the "ggsoccer" package
+# Pitch <- ggsoccer::annotate_pitch(
+#                   colour = "dimgray",#"White",
+#                   fill   = "white", #springgreen4", #rgb(0,0.6,0,0.2)
+#                   limits = FALSE,
+#                     # Tracab reference (origin in the center of the pitch)
+#                   dimensions = make_pitch_tracab(fPitchXSizeMeters, fPitchYSizeMeters),
+#                   #dimensions=rescale_coordinates(pitch_tracab,pitch_international),
+#                   goals=goals_line, #goals_box
+#                   linewidth = 0.5,
+#                   alpha=0.1,
+#                   linetype="solid"
+#                 )
+  #but weusea list with the dimensions of the Sample3 pitch, changing the origin coordinates fot plot it
+Pitch_custom <- list( 
+  length = fPitchXSizeMeters,
+  width = fPitchYSizeMeters, 
+  penalty_box_length = 16.5, 
+  penalty_box_width = 40.3, 
+  six_yard_box_length = 5.5, 
+  six_yard_box_width = 18.3, 
+  penalty_spot_distance = 11, 
+  goal_width = 7.32, 
+  origin_x = -fPitchXSizeMeters/2, 
+  origin_y = -fPitchYSizeMeters/2 
+  )
+
+# Create a main transparent theme object 
+transparent_theme <- theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  axis.text.x = element_blank(), 
+  axis.text.y = element_blank(),
+  axis.ticks = element_blank(),
+  panel.grid = element_blank(),
+  axis.line = element_blank(),
+  panel.background = element_rect(fill = "transparent",colour = NA),
+  plot.background = element_rect(fill = "transparent",colour = NA)
+ )
+```
+
+```{r}
+#| label: Defining colours
+#| echo: true
+#| code-fold: true
+
+  ################################################################################
+  # selecting colours for variables and auziliar objects
+  ################################################################################
+
+ai_colour <- rgb(0,0,1,alpha=0.75,names="ai color") # para los jugadores a_i
+bk_colour <- rgb(150/255,100/255,0,alpha=0.75,names="bk color") # para los jugadores b_k
+cj_colour <- rgb(250/255,0,0,alpha=0.75,names="cj color") # para los jugadores c_j
+d_colour<- "gray" #color de las lineas que unen los COP
+b_colour<- "gray" #color de las bolas de los jugadores con presión
+CP_colour<- "darkgreen"  #color de las leyendas de los COPs de los jugadores con presión
+                          #color de los bordes de las áreas de presion generadas
+p_colour<-rgb(100/255,150/255,0,alpha=255/255,names="p color") #color de las áres de presiones generadas era 64/255 en realidad
+v_colour <- "darkblue" #color de las velocidades
+a_colour <- "cyan3"  #color de las aceleraciones
+L_colour <- rgb(255/255,0,0,alpha=1,names="J color")  #color de Jab
+F_colour <- rgb(250/255,200/255,0,alpha=1,names="F color")  #color de Fab
+W_colour <- rgb(0,200/255,1,alpha=1,names="W color")  #color de Wab
+
+
+  ################################################################################
+  # selecting linear scales for displaying variables P,J,F y W 
+  ################################################################################
+# definicion de las escalas para representar P,J,F y W 
+S_Max <- 3*r  #asignamos el valor máximo de escala para las variables
+
+s_v <-  S_Max/8       #escala máxima a representar / valor maximo de la variable  
+s_a <-  S_Max/8       #aceleraciones
+s_P <-  Amax          #Presiones
+s_J <-  S_Max/4       #J
+s_F <-  S_Max/4     #F
+s_W <-  S_Max/4     #W
+s_E <-  S_Max/4     #E
+
+```
+
+# BUILDING A DYNAMICAL MODEL
+
+## Didactical.1 frame
+
+Aqui vamos dibujando y creando el modelo dinámico apartir de los jugadores y su cinemática
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph101-WbA+WBa_Headmap
+
+  # (A1) counter-attack - FIRST Frame
+# fr=31
+# E <- EVENT_lost2 %>% filter(Id==fr)
+# K <- KINEM %>% filter(Fr==E$Fr)
+# D <- DYNAM %>% filter(Fr==E$Fr)
+  # Selecting the frame to drawing
+fr=92500 # (92500 frame of event Id=86)
+K <- KINEM %>% filter(Fr==fr)
+D <- DYNAM %>% filter(Fr==fr)
+DAB <- DYNAM %>% filter(Fr==fr) %>% group_by(Bowing) %>% 
+  summarise(pAB=sum(pab), LAB=sum(Lab,na.rm=TRUE), WAB=sum(Wab,na.rm=TRUE)) %>% ungroup()
+D_CP_AB <- DYNAM_CP_AB %>% filter(Fr==fr)
+
+# (A1) counter-attack - ALL Frames
+# E <- EVENT_lost2 %>% filter(Id==81)
+# K <- KINEM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+# D <- DYNAM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+
+Play1 <- ggplot(K) +
+    # 1-Drawing the pitch
+  #annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing players and ball positions
+  geom_point(aes(x=r_x,y=r_y,color=team,size = team),
+             alpha=0.5, show.legend = FALSE) +
+    # 3-Drawing player numbers
+  geom_text(data=K,aes(x = r_x, y = r_y,color= team),
+                   label=K$player_shirt, max.overlaps=10, size=3, show.legend = FALSE)+ 
+    # 4- (v) Drawing velocities of players as vectors
+  geom_segment(data=K,aes(x = r_x, y = r_y, xend=r_x+v_x*s_v, yend=r_y+v_y*s_v),
+              color=v_colour,
+              arrow=arrow(length = unit(0.2,"cm")),
+              lineend="round", linejoin = "round",
+              linetype =2,
+              linewidth=0.50)+
+    # 5- (a) Drawing acelerations of players as vectors
+  geom_segment(data=K,aes(x = r_x, y = r_y, xend=r_x+a_x*s_a, yend=r_y+a_y*s_a),
+              color=a_colour,
+              arrow=arrow(length = unit(0.1,"cm")),
+              lineend="round", linejoin = "round",
+              linetype =2,
+              linewidth=0.50)+
+    # 6- Drawing the circumferences (radi=r) for all players
+  geom_circle(data=filter(K,K$team!="C"),aes(x0=r_x,y0=r_y,r=r),
+              n=25,color="gray",alpha=0.05,linetype=2)+
+    # 7- Drawing line between a and b players to represente the CP
+  geom_segment(data=D,aes(x = ra_x, y = ra_y, xend=rb_x, yend=rb_y),
+             color= d_colour,linetype = 1)+
+    # 8- Drawing the CP coordinates for Pab
+  geom_point(data=D,aes(x = rpab_x, y = rpab_y),
+             color= CP_colour,
+             shape = 13,
+             size = 3)+
+    # 9-Drawing labels for each pab
+  geom_text(data=D,aes(x = rpab_x, y = rpab_y),
+                  color=CP_colour, 
+                  label=str_c("P",{D$a_player_shirt},",",{D$b_player_shirt}),
+                  max.overlaps=10,
+                  size=3)+
+    # 10- Drawing velocities of Pab
+  geom_segment(data=D,aes(x = rpab_x, y = rpab_y, xend=rpab_x+vpab_x*s_v, yend=rpab_y+vpab_y*s_v),
+              color=v_colour,
+              arrow=arrow(length = unit(0.2,"cm")),
+              lineend="round", linejoin = "round",
+              linewidth=0.75)+
+    # 11- Drawing accelerations of Pab
+  geom_segment(data=D,aes(x = rpab_x, y = rpab_y, xend=rpab_x+apab_x*s_a, yend=rpab_y+apab_y*s_a),
+                 color=a_colour,
+                 arrow=arrow(length = unit(0.2,"cm")),
+                 lineend="round", linejoin = "round")+
+    # 12- Drawing the equivalent circle for Pab
+  geom_circle(data=D,aes(x0=rpab_x, y0=rpab_y, r=sqrt(pab*s_P/pi)),
+              inherit.aes = FALSE,
+              n=25, alpha=0.1, color=CP_colour, fill=p_colour, linetype=2)+
+    # 13-(W) Drawing Work of Pab
+  geom_label(data=D,aes(x = rpab_x, y = rpab_y,fill=Wab),alpha=0.7,show.legend = FALSE,
+                  color="black", 
+                  #label=str_c("W",{D$a_player_shirt},",",{D$b_player_shirt},":",{round(D$Wab,2)}),
+                  label={round(D$Wab,2)},
+                  max.overlaps=10,
+                  size=3)+
+    # 14- Drawing the system variables (but take note that they aren't the CP variables)
+  geom_label(data=DAB,aes(x = 0, y = -68/2-4),
+                  color="black", 
+                  label=str_c("P= ",round({DAB$pAB},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2)),
+                  size=6,
+                  alpha=0.2)+
+  
+  ########### CENTRE OF PRESSURE ############
+  
+    # 15- Drawing the CP coordinates for PAB
+  geom_point(data=D_CP_AB,aes(x = CP_rpAB_x, y = CP_rpAB_y),
+             color= CP_colour,
+             shape = 13,
+             size = 3)+
+    # 16- Drawing the variables for p-AB
+  geom_circle(data=D_CP_AB,aes(x0=CP_rpAB_x, y0=CP_rpAB_y, r=sqrt(pAB*s_P/pi)),
+              inherit.aes = FALSE,
+              n=25, alpha=0.1, color=CP_colour, fill=p_colour, linetype=2, size=1)+
+    # 17-Drawing labels for pAB
+  geom_text(data=D_CP_AB,aes(x = CP_rpAB_x+1.5, y = CP_rpAB_y+1.5),
+                  color=CP_colour,
+                  label=str_c("pAB"),
+                  max.overlaps=10,
+                  size=4)+
+    # 18- Drawing velocities of CP-Pab
+  geom_segment(data=D_CP_AB,aes(x = CP_rpAB_x, y = CP_rpAB_y, xend=CP_rpAB_x+CP_vpAB_x*s_v, yend=CP_rpAB_y+CP_vpAB_y*s_v),
+              color=v_colour,
+              arrow=arrow(length = unit(0.2,"cm")),
+              lineend="round", linejoin = "round",
+              linewidth=0.75)+
+  
+
+    #Player size symbols 
+  scale_size_manual(values=c(4, 4, 2))+
+    #Player color for teams
+  scale_color_manual(values=c("lightblue", "orange", "magenta"),aesthetics = "color", breaks = waiver())+
+    #Work fill scale
+  scale_fill_distiller(name = waiver(), aesthetics = "fill", palette = "Reds",direction = 1)+
+    #Changingtheme options
+  # guides(
+  #   colour = guide_legend(position = "bottom"),
+  #   size   = guide_legend(position = "bottom"),
+  # ) +
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40)),
+    #plot.subtitle = element_text(color = "black",size=12,
+    #                          margin = margin(l = 50, b = -40))
+    #plot.title = element_text(vjust=-0.5)
+    #plot.caption = element_text(vjust = 0.5)
+    #legend.margin = margin(0, 0, 0, 0), # turned off for alignment
+    #legend.text = element_text(margin = margin(b = 0)),
+    #legend.spacing.y = unit(0, "pt")
+      #legend.position = 'none',
+      #legend.location = "bottom",
+            )+
+  labs(
+    title = str_c("frame: ",K[1,])
+    #subtitle = str_c("P= ",round({DAB$pAB},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+Play1
+
+  #Creating transitions by layers
+Play1_anim <- Play1 + 
+  transition_layers( 
+    layer_length = 2,
+    transition_length = 0,
+    keep_layers = TRUE,  #Permanecen todas las capas. Ejemplo: keep_layers = c(Inf, 0, 0) 
+    from_blank = FALSE,  #No permanece la capa 1
+    layer_order = NULL, #c(1,2,3,4,5,6,7,8,9,10,11,12),  #NULL si no queremos poner nada
+    layer_names = NULL
+    #layer_order = c(1,2,3,4,5,6,7,8,9,10,11,12)
+  )
+#enter_fade()  +  enter_grow()  +  exit_fade()  +  exit_shrink()
+Play1_anim
+
+# Render animation
+Play1_video <- gganimate::animate(Play1_anim,
+                       renderer = gifski_renderer(file = str_c(pathvideos,"Play1.gif")),
+                       width = 1050, 
+                       height = 680, 
+                       nframes = 625,
+                       fps = 25, 
+                       duration = 25)
+Play1_video
+anim_save(str_c(pathvideos,"Play1.mp4"))
+
+```
+
+## Didactical. All frames
+
+# HEATMAPS
+
+## PAB+PBA
+
+### PAB1
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph111-WbA+WBa_Heatmap
+
+  # (A1) counter-attack - FIRST Frame
+# fr=31
+# E <- EVENT_lost2 %>% filter(Id==fr)
+# K <- KINEM %>% filter(Fr==E$Fr)
+# D <- DYNAM %>% filter(Fr==E$Fr)
+  # Selecting the frame to drawing
+
+  #(A1) counter-attack - ALL Frames
+E <- EVENT_lost2 %>% filter(Id==86)
+K <- KINEM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+D <- DYNAM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end & !is.nan(Wab))
+DAB <- DYNAM %>% filter(Fr>=E$Fr & Fr<=E$Fr_end & !is.nan(Wab)) %>% group_by(Bowing) %>% 
+  summarise(pAB=sum(pab), LAB=sum(Lab,na.rm=TRUE), WAB=sum(Wab,na.rm=TRUE)) %>% ungroup()
+
+PlayHeatMap111 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(color= Wab))+
+    # 3- Drawing the headmap no-weighted
+  #geom_density_2d_filled(aes(fill = after_stat(level)),alpha=0.5)+
+  geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  geom_density_2d(aes(color = Wab)+
+#   geom_density_2d_filled(
+#     aes(group=a_player_shirt),
+#     mapping = NULL,
+#     data = NULL,
+#     stat = "density_2d_filled",
+#     position = "identity",
+#     contour_var = "density",
+#     na.rm = TRUE, #remove nan values
+#     show.legend = NA,
+#     inherit.aes = TRUE,
+#     alpha=0.5
+# )+
+    #geom_density_2d(colour= "black",show.legend = FALSE)+
+
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40)),
+    #plot.subtitle = element_text(color = "black",size=12,
+    #                          margin = margin(l = 50, b = -40))
+    #plot.title = element_text(vjust=-0.5)
+    #plot.caption = element_text(vjust = 0.5)
+    #legend.margin = margin(0, 0, 0, 0), # turned off for alignment
+    #legend.text = element_text(margin = margin(b = 0)),
+    #legend.spacing.y = unit(0, "pt")
+      #legend.position = 'none',
+      #legend.location = "bottom",
+            )+
+  #Work fill scale
+  #scale_fill_brewer(pallete="Reds", direction = 1)+
+  #scale_fill_gradient(low = "white", high = "red", na.value = NA)+
+  #scale_colour_distiller(pallete="Reds", direction = 1)+
+  labs(
+    title = str_c("frame: ",D$Fr[1]," to ", D$Fr[nrow(D)])
+    #subtitle = str_c("P= ",round({DAB$pAB},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap111
+
+```
+
+### PAB2
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph112-WbA+WBa_Heatmap
+
+  #counter-attack
+E <- EVENT_lost2 %>% filter(Id==86)
+K <- KINEM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end)
+D <- DYNAM %>% filter (Fr>=E$Fr & Fr<=E$Fr_end & !is.nan(Wab))
+DAB <- DYNAM %>% filter(Fr>=E$Fr & Fr<=E$Fr_end & !is.nan(Wab)) %>% group_by(Bowing) %>% 
+  summarise(pAB=sum(pab), LAB=sum(Lab,na.rm=TRUE), WAB=sum(Wab,na.rm=TRUE)) %>% ungroup()
+D <- D %>% select(Fr,a_player_shirt,b_player_shirt,rpab_x,rpab_y,pab,Wab)
+
+PlayHeatMap112 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  #annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(color= Wab),alpha=0.3)+
+  #geom_density_2d(aes(size = Wab),alpha=0.3)+
+  geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40))
+    )+
+  scale_colour_distiller(palette = "Reds")+
+  labs(
+    title = str_c("frame: ",D$Fr[1]," to ", D$Fr[nrow(D)])
+    #subtitle = str_c("P= ",round({DAB$pAB},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap112
+
+```
+
+### PAB3
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph113-WbA+WBa_Heatmap
+
+  #Analizing player 18(goalkeeper) and 11 Wab interaction
+K <- KINEM %>% filter ((player_shirt==11 | player_shirt==18))
+D <- DYNAM %>% filter (a_player_shirt==11 & b_player_shirt==18 & !is.nan(Wab))
+DAB <- DYNAM %>% filter(a_player_shirt==11 & b_player_shirt==18 & !is.nan(Wab)) %>% group_by(Bowing) %>% 
+  summarise(pAB=sum(pab), LAB=sum(Lab,na.rm=TRUE), WAB=sum(Wab,na.rm=TRUE)) %>% ungroup()
+D <- D %>% select(Fr,a_player_shirt,b_player_shirt,rpab_x,rpab_y,pab,Wab)
+
+PlayHeatMap113 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(color= Wab),alpha=0.7)+
+  #geom_density_2d(aes(size = Wab),alpha=0.3)+
+  #geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40))
+    )+
+  scale_colour_distiller(palette = "Reds",direction=1)+
+  labs(
+    title = str_c("frame: ",Fr_1I," to ", Fr_2F, ".  W18,11")
+    #subtitle = str_c("P= ",round({DAB$pAB},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap113
+
+```
+
+### PAB4
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph114-WaBHeatmap
+
+  #Analizing player 11 and team B Wab interaction
+K <- KINEM %>% filter ((player_shirt==11))
+D <- DYNAM %>% filter (a_player_shirt==11 & !is.nan(Wab) & Bowing=="Team B")
+DAB <- DYNAM %>% filter(a_player_shirt==11 & !is.nan(Wab) & Bowing=="Team B") %>% group_by(Bowing) %>% 
+  summarise(pAB=sum(pab), LAB=sum(Lab,na.rm=TRUE), WAB=sum(Wab,na.rm=TRUE)) %>% ungroup()
+D <- D %>% select(Fr,a_player_shirt,b_player_shirt,rpab_x,rpab_y,pab,Wab)
+
+PlayHeatMap114 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(color= Wab),alpha=0.7)+
+  #geom_density_2d(aes(size = Wab),alpha=0.3)+
+  #geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40))
+    )+
+  scale_colour_distiller(palette = "Reds",direction=1)+
+  labs(
+    title = str_c("frame: ",Fr_1I," to ", Fr_2F, "  W11,B")
+    #subtitle = str_c("P= ",round({DAB$pAB},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap114
+
+```
+
+### PAB5
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph115-WaBHeatmap
+
+  #Analizing player 11 and team B Wab interaction
+K <- KINEM %>% filter ()
+D <- DYNAM %>% filter (!is.nan(Wab) & Bowing=="Team B")
+DAB <- DYNAM %>% filter(!is.nan(Wab) & Bowing=="Team B") %>% group_by(Bowing) %>% 
+  summarise(pAB=sum(pab), LAB=sum(Lab,na.rm=TRUE), WAB=sum(Wab,na.rm=TRUE)) %>% ungroup()
+D <- D %>% select(Fr,a_player_shirt,b_player_shirt,rpab_x,rpab_y,pab,Wab)
+
+PlayHeatMap115 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(color= Wab),alpha=0.7)+
+  #geom_density_2d(aes(size = Wab),alpha=0.3)+
+  #geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40))
+    )+
+  scale_colour_distiller(palette = "Reds",direction=1)+
+  labs(
+    title = str_c("frame: ",Fr_1I," to ", Fr_2F, "  WA,B")
+    #subtitle = str_c("P= ",round({DAB$pAB},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap115
+
+```
+
+### PAB6
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph116-paBHeatmap
+
+  #Analizing player 11 and team B Wab interaction
+K <- KINEM %>% filter ()
+D <- DYNAM %>% filter (!is.nan(pab) & Bowing=="Team B")
+DAB <- DYNAM %>% filter(!is.nan(pab) & Bowing=="Team B") %>% group_by(Bowing) %>% 
+  summarise(pAB=sum(pab), LAB=sum(Lab,na.rm=TRUE), WAB=sum(Wab,na.rm=TRUE)) %>% ungroup()
+D <- D %>% select(Fr,a_player_shirt,b_player_shirt,rpab_x,rpab_y,pab,Wab)
+
+PlayHeatMap116 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(color= pab),alpha=0.3)+
+  #geom_density_2d(aes(size = Wab),alpha=0.3)+
+  #geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40))
+    )+
+  scale_colour_distiller(palette = "Greens",direction=1)+
+  labs(
+    title = str_c("frame: ",Fr_1I," to ", Fr_2F, ".  pA,B")
+    #subtitle = str_c("P= ",round({DAB$pAB},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap116
+
+```
+
+
+## WORK
+### High defensive work. Team A
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph120-Wab_HighHeatmap
+
+
+
+%HighWork <- DYNAM %>% select(Fr,Bowing,rpab_x,rpab_y,pab,Wab,)
+HighWork <- DYNAM %>% filter(!is.na(Wab)) %>% select(Wab) #472453 entradas
+HighWork_percentil <-quantile(HighWork$Wab, probs = c(0.25, 0.50, 0.75, 0.90, 0.95, 0.99, 0.999), type = 7)
+HighWork_percentil <- as.data.frame(HighWork_percentil)
+#HighWork_percentil[5,1] # 95 percentil -> 0.2669686, 23623 entradas
+#HighWork_percentil[6,1] # 99 percentil -> 0.6659084, 4725 entradas
+#HighWork_percentil[7,1] # 99.9 percentil -> 5.4839910, 473 entradas
+
+D <- DYNAM %>% filter(!is.na(Wab) & 
+                        Wab >HighWork_percentil[6,1] &
+                        Bowing=="Team B" &    #Note that team B has the possession of the ball
+                        Wab < 50) %>% 
+              select(Fr, a_player_shirt,b_player_shirt,rpab_x,rpab_y,pab,Wab)
+
+PlayHeatMap120 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(color= Wab),alpha=0.7,show.legend = FALSE)+
+  #geom_density_2d(aes(size = Wab),alpha=0.3)+
+  #geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40))
+    )+
+  scale_colour_distiller(palette = "Reds",direction=1)+
+  labs(
+    title = str_c("High defensive work. Team A")
+    #subtitle = str_c("P= ",round({D$Wab},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap120
+
+```
+
+### High defensive work. Team B
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph121-Wab_HighHeatmap
+
+
+
+#HighWork <- DYNAM %>% select(Fr,Bowing,rpab_x,rpab_y,pab,Wab,)
+HighWork <- DYNAM %>% filter(!is.na(Wab)) %>% select(Wab) #472453 entradas
+HighWork_percentil <-quantile(HighWork$Wab, probs = c(0.25, 0.50, 0.75, 0.90, 0.95, 0.99, 0.999), type = 7)
+HighWork_percentil <- as.data.frame(HighWork_percentil)
+#HighWork_percentil[5,1] # 95 percentil -> 0.2669686, 23623 entradas
+#HighWork_percentil[6,1] # 99 percentil -> 0.6659084, 4725 entradas
+#HighWork_percentil[7,1] # 99.9 percentil -> 5.4839910, 473 entradas
+
+D <- DYNAM %>% filter(!is.na(Wab) & 
+                        Wab >HighWork_percentil[6,1] &
+                        Bowing=="Team A" &
+                        Wab < 50) %>% 
+              select(Fr, a_player_shirt,b_player_shirt,rpab_x,rpab_y,pab,Wab)
+
+PlayHeatMap121 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(color= Wab),alpha=0.7,show.legend = FALSE)+
+  #geom_density_2d(aes(size = Wab),alpha=0.3)+
+  #geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40)),
+    legend.position="bottom"
+    )+
+  scale_colour_distiller(palette = "Reds",direction=1)+
+  labs(
+    title = str_c("High defensive work. Team B")
+    #subtitle = str_c("P= ",round({D$Wab},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap121
+
+```
+
+### High defensive work. Defending Player A6 (Attacking right midfielder)
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph122-Wab_HighHeatmap
+
+
+
+#HighWork <- DYNAM %>% select(Fr,Bowing,rpab_x,rpab_y,pab,Wab,)
+HighWork <- DYNAM %>% filter(!is.na(Wab)) %>% select(Wab) #472453 entradas
+HighWork_percentil <-quantile(HighWork$Wab, probs = c(0.25, 0.50, 0.75, 0.90, 0.95, 0.99, 0.999), type = 7)
+HighWork_percentil <- as.data.frame(HighWork_percentil)
+#HighWork_percentil[5,1] # 95 percentil -> 0.2669686, 23623 entradas
+#HighWork_percentil[6,1] # 99 percentil -> 0.6659084, 4725 entradas
+#HighWork_percentil[7,1] # 99.9 percentil -> 5.4839910, 473 entradas
+
+D <- DYNAM %>% filter(!is.na(Wab) & 
+                        Wab >HighWork_percentil[6,1] &
+                        Bowing=="Team A" &
+                        a_player_shirt == 6 &
+                        Wab < 50) %>% 
+              select(Fr, a_player_shirt,b_player_shirt,rpab_x,rpab_y,pab,Wab)
+
+PlayHeatMap122 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(color= Wab),alpha=0.9,show.legend = FALSE)+
+  geom_text_repel(aes(label=paste("W", b_player_shirt, "," , a_player_shirt, sep = "")),alpha=0.4,size=1.75,show.legend = FALSE)+
+  #geom_density_2d(aes(size = Wab),alpha=0.3)+
+  #geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40)),
+    legend.position="bottom"
+    )+
+  scale_colour_distiller(palette = "Reds",direction=1)+
+  labs(
+    title = str_c("Defending player 6.")
+    #subtitle = str_c("P= ",round({D$Wab},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap122
+
+```
+
+### High defensive work. Player B30(Right Centre Midfielder) & Player A16(Attacking Centre Midfielder)
+```{r}
+#| echo: true
+#| code-fold: true
+#| label: fig-graph123-Wab_HighHeatmap
+
+#HighWork <- DYNAM %>% select(Fr,Bowing,rpab_x,rpab_y,pab,Wab,)
+HighWork <- DYNAM %>% filter(!is.na(Wab)) %>% select(Wab) #472453 entradas
+HighWork_percentil <-quantile(HighWork$Wab, probs = c(0.25, 0.50, 0.75, 0.90, 0.95, 0.99, 0.999), type = 7)
+HighWork_percentil <- as.data.frame(HighWork_percentil)
+#HighWork_percentil[3,1] # 75 percentil -> 0.057008437, 29528,3125 entradas
+#HighWork_percentil[5,1] # 95 percentil -> 0.2669686, 23623 entradas
+#HighWork_percentil[6,1] # 99 percentil -> 0.6659084, 4725 entradas
+#HighWork_percentil[7,1] # 99.9 percentil -> 5.4839910, 473 entradas
+
+D <- DYNAM %>% filter(!is.na(Wab) & 
+                        Wab >HighWork_percentil[3,1] & #Utilizamos el percentil 0.75 para representar 2 jugadores y que se puedan identificar la actividad defensiva 
+                        #Bowing=="Team A" &
+                        a_player_shirt == 16 &
+                        b_player_shirt == 30 &
+                        Wab < 50) %>% 
+              select(Fr, Bowing, a_player_shirt,b_player_shirt,rpab_x,rpab_y,pab,Wab)
+
+PlayHeatMap123 <- ggplot(D,aes(x=rpab_x,y=rpab_y)) +
+    # 1-Drawing the pitch
+  annotate_pitch(dimensions = Pitch_custom) +
+    # 2-Drawing the CP
+  geom_point(aes(size= Wab, color=Bowing),alpha=0.7,show.legend = FALSE)+
+  #geom_density_2d(aes(size = Wab),alpha=0.3)+
+  #geom_density_2d_filled(contour_var = "ndensity",alpha=0.5)+
+  
+  transparent_theme+
+  theme(
+    plot.title = element_text(color = "gray",size=12,
+                              margin = margin(l = 50, b = -40)),
+    legend.position="bottom"
+    )+
+  #scale_colour_distiller(palette = "Reds",direction=1)+
+  labs(
+    title = str_c("player 30 & player 16.")
+    #subtitle = str_c("P= ",round({D$Wab},2),"  LT= ",round({DAB$LAB},2),"  W= ",round({DAB$WAB},2))
+  )
+
+PlayHeatMap123
+
+```
+
+# SIMULATING ACTIONS
+
+Global variables for the model simulator
+
+#REFERENCES
