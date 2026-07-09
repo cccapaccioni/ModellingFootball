@@ -406,6 +406,8 @@ pab_statJug_ab_tris <- pab_statJug_ab_tris %>% dplyr::select(CA_sigma,CC_sigma)
 #rownames(pab_statJug_ab_tris) <- pab_statJug_ab_tris$TP
   #ejecutamos el cluster
 k2 <- kmeans(pab_statJug_ab_tris, centers = 3, nstart = 25)
+  #Si queremos calcular los Whitin-Cluster Sum of Squares k-means lo almacena en al variable tot.withinss
+k_wcss <- kmeans(pab_statJug_ab_tris, centers = 3, nstart = 25)$tot.withinss
 pab_Cluster=fviz_cluster(k2, data = pab_statJug_ab_tris,ellipse.type = "convex", ellipse.level = 0.99, ellipse.alpha = 0.2,
              repel=TRUE, ggtheme=theme_few())
 pab_Cluster
@@ -418,13 +420,52 @@ wcss <- sapply(1:5, function(k) {
 })
 
 # Graficar el método del codo
-plot(1:5, wcss, type = "b", pch = 19, frame = FALSE,
+pab_kmeans_wcss <- plot(1:5, wcss, type = "b", pch = 19, frame = FALSE,
      xlab = "Número de Clústeres (k)",
      ylab = "WCSS (Inercia)",
      main = "Método del Codo (Base R)")
 
+pab_kmeans_wcss
 
+# Graficar el método del codo ----- MAS BONITA -----
 
+# 1. Calcular WCSS utilizando sapply (Opción 1 nativa)
+k_valores <- 1:5
+wcss <- sapply(k_valores, function(k) {
+  kmeans(pab_statJug_ab_tris, centers = k, nstart = 20)$tot.withinss
+})
+
+# 2. Estructurar los resultados en un DataFrame para ggplot
+df_codo <- data.frame(
+  Clusters = k_valores,
+  WCSS = wcss
+)
+
+# 3. Crear la gráfica optimizada
+ggplot(df_codo, aes(x = Clusters, y = WCSS)) +
+  # Línea suavizada entre los puntos
+  geom_line(color = "#1f77b4", size = 1.2) +
+  # Puntos resaltados con borde blanco para contraste
+  geom_point(color = "#d62728", size = 3.5, shape = 21, fill = "white", stroke = 2) +
+  # Escala del eje X con números enteros del 1 al 10
+  scale_x_continuous(breaks = k_valores) +
+  # Formato limpio y profesional
+  theme_minimal(base_size = 14) +
+  # Personalización de textos y etiquetas
+  labs(
+    title = "Elbow Method for Cluster Selection",
+    subtitle = "The point of inflection indicates the optimal number of clusters (k)",
+    x = "Number of Clusters (k)",
+    y = "Total Within-Cluster Sum of Squares (WCSS)",
+    caption = "Algorithm: K-Means"
+  ) +
+  # Ajustes finos de la cuadrícula estética
+  theme(
+    plot.title = element_text(face = "bold", color = "#333333", size = 16),
+    plot.subtitle = element_text(color = "#666666", margin = margin(b = 15)),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "#eaeaea")
+  )
 
 
 

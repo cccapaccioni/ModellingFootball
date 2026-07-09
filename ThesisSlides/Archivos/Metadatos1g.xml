@@ -1,0 +1,87 @@
+<main xmlns:tns="FIFADataTransferFormatEPTSNamespace/FIFADataTransferFormatEPTS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="FIFADataTransferFormatEPTSNamespace/FIFADataTransferFormatEPTS FIFADataTransferFormatEPTS.xsd">
+  <Metadata>
+    <GlobalConfig>
+    </GlobalConfig>
+    <Sessions>
+    </Sessions>
+    <Teams>
+    </Teams>
+    <Players>
+    </Players>
+    <Devices>
+    </Devices>
+    <PlayerChannels>
+      <PlayerChannel channelId="x" id="player1_x" playerId="P3578"/>
+      <PlayerChannel channelId="y" id="player1_y" playerId="P3578"/>
+      <PlayerChannel channelId="x" id="player2_x" playerId="P3568"/>
+      <PlayerChannel channelId="y" id="player2_y" playerId="P3568"/>
+      <PlayerChannel channelId="x" id="player3_x" playerId="P3569"/>
+      <PlayerChannel channelId="y" id="player3_y" playerId="P3569"/>
+      <PlayerChannel channelId="x" id="player4_x" playerId="P3570"/>
+      <PlayerChannel channelId="y" id="player4_y" playerId="P3570"/>
+      <PlayerChannel channelId="x" id="player5_x" playerId="P3571"/>
+      <PlayerChannel channelId="y" id="player5_y" playerId="P3571"/>
+      <PlayerChannel channelId="x" id="player6_x" playerId="P3572"/>
+      <PlayerChannel channelId="y" id="player6_y" playerId="P3572"/>
+      <PlayerChannel channelId="x" id="player7_x" playerId="P3573"/>
+      <PlayerChannel channelId="y" id="player7_y" playerId="P3573"/>
+      <PlayerChannel channelId="x" id="player8_x" playerId="P3574"/>
+      <PlayerChannel channelId="y" id="player8_y" playerId="P3574"/>
+      <PlayerChannel channelId="x" id="player9_x" playerId="P3575"/>
+      <PlayerChannel channelId="y" id="player9_y" playerId="P3575"/>
+      <PlayerChannel channelId="x" id="player10_x" playerId="P3576"/>
+      <PlayerChannel channelId="y" id="player10_y" playerId="P3576"/>
+      <PlayerChannel channelId="x" id="player11_x" playerId="P3577"/>
+      <PlayerChannel channelId="y" id="player11_y" playerId="P3577"/>
+      <PlayerChannel channelId="x" id="player12_x" playerId="P3579"/>
+      <PlayerChannel channelId="y" id="player12_y" playerId="P3579"/>
+      <PlayerChannel channelId="x" id="player13_x" playerId="P3580"/>
+      <PlayerChannel channelId="y" id="player13_y" playerId="P3580"/>
+      <PlayerChannel channelId="x" id="player14_x" playerId="P3581"/>
+      <PlayerChannel channelId="y" id="player14_y" playerId="P3581"/>
+      <PlayerChannel channelId="x" id="player15_x" playerId="P3582"/>
+      <PlayerChannel channelId="y" id="player15_y" playerId="P3582"/>
+      <PlayerChannel channelId="x" id="player16_x" playerId="P3583"/>
+      <PlayerChannel channelId="y" id="player16_y" playerId="P3583"/>
+      <PlayerChannel channelId="x" id="player17_x" playerId="P3584"/>
+      <PlayerChannel channelId="y" id="player17_y" playerId="P3584"/>
+      <PlayerChannel channelId="x" id="player18_x" playerId="P3595"/>
+      <PlayerChannel channelId="y" id="player18_y" playerId="P3595"/>
+      <PlayerChannel channelId="x" id="player19_x" playerId="P3585"/>
+      <PlayerChannel channelId="y" id="player19_y" playerId="P3585"/>
+      <PlayerChannel channelId="x" id="player20_x" playerId="P3586"/>
+      <PlayerChannel channelId="y" id="player20_y" playerId="P3586"/>
+      <PlayerChannel channelId="x" id="player21_x" playerId="P3587"/>
+      <PlayerChannel channelId="y" id="player21_y" playerId="P3587"/>
+      <PlayerChannel channelId="x" id="player22_x" playerId="P3588"/>
+      <PlayerChannel channelId="y" id="player22_y" playerId="P3588"/>
+      <PlayerChannel channelId="x" id="player23_x" playerId="P3589"/>
+      <PlayerChannel channelId="y" id="player23_y" playerId="P3589"/>
+      <PlayerChannel channelId="x" id="player24_x" playerId="P3590"/>
+      <PlayerChannel channelId="y" id="player24_y" playerId="P3590"/>
+      <PlayerChannel channelId="x" id="player25_x" playerId="P3591"/>
+      <PlayerChannel channelId="y" id="player25_y" playerId="P3591"/>
+      <PlayerChannel channelId="x" id="player26_x" playerId="P3592"/>
+      <PlayerChannel channelId="y" id="player26_y" playerId="P3592"/>
+      <PlayerChannel channelId="x" id="player27_x" playerId="P3593"/>
+      <PlayerChannel channelId="y" id="player27_y" playerId="P3593"/>
+      <PlayerChannel channelId="x" id="player28_x" playerId="P3594"/>
+      <PlayerChannel channelId="y" id="player28_y" playerId="P3594"/>
+      <PlayerChannel channelId="x" id="player29_x" playerId="P3596"/>
+      <PlayerChannel channelId="y" id="player29_y" playerId="P3596"/>
+      <PlayerChannel channelId="x" id="player30_x" playerId="P3597"/>
+      <PlayerChannel channelId="y" id="player30_y" playerId="P3597"/>
+      <PlayerChannel channelId="x" id="player31_x" playerId="P3696"/>
+      <PlayerChannel channelId="y" id="player31_y" playerId="P3696"/>
+      <PlayerChannel channelId="x" id="player32_x" playerId="P3697"/>
+      <PlayerChannel channelId="y" id="player32_y" playerId="P3697"/>
+      <PlayerChannel channelId="x" id="player33_x" playerId="P3698"/>
+      <PlayerChannel channelId="y" id="player33_y" playerId="P3698"/>
+      <PlayerChannel channelId="x" id="player34_x" playerId="P3699"/>
+      <PlayerChannel channelId="y" id="player34_y" playerId="P3699"/>
+      <PlayerChannel channelId="x" id="player35_x" playerId="P3700"/>
+      <PlayerChannel channelId="y" id="player35_y" playerId="P3700"/>
+    </PlayerChannels>
+  </Metadata>
+  <DataFormatSpecifications>
+  </DataFormatSpecifications>

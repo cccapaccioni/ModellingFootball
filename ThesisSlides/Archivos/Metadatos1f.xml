@@ -1,0 +1,35 @@
+<main xmlns:tns="FIFADataTransferFormatEPTSNamespace/FIFADataTransferFormatEPTS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="FIFADataTransferFormatEPTSNamespace/FIFADataTransferFormatEPTS FIFADataTransferFormatEPTS.xsd">
+  <Metadata>
+    <GlobalConfig>
+    </GlobalConfig>
+    <Sessions>
+    </Sessions>
+    <Teams>
+    </Teams>
+    <Players>
+    </Players>
+    <Devices>
+      <Device id="device1">
+        <Name>Device 1</Name>
+        <Sensors>
+          <Sensor id="position">
+            <Name>Position</Name>
+            <Channels>
+              <Channel id="x">
+                <Name>position_x</Name>
+                <Unit>normalized</Unit>
+              </Channel>
+              <Channel id="y">
+                <Name>position_y</Name>
+                <Unit>normalized</Unit>
+              </Channel>
+            </Channels>
+          </Sensor>
+        </Sensors>
+      </Device>
+    </Devices>
+    <PlayerChannels>
+    </PlayerChannels>
+  </Metadata>
+  <DataFormatSpecifications>
+  </DataFormatSpecifications>

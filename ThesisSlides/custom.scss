@@ -1,0 +1,472 @@
+/*-- scss:defaults --*/
+
+/*-- scss:rules --*/
+
+
+/* ============================================================
+   COVER SLIDE
+   ============================================================ */
+
+.reveal .slides section.cover-slide {
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box;
+
+  padding: 60px 90px;
+  margin: 0 auto !important;
+
+  text-align: center;
+  background: #ffffff;
+
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+}
+.reveal .cover-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 70px;
+  margin-bottom: 25px;
+  transform: translateY(-50px); /* Lo subo para ajustarlo todo */
+}
+.reveal .cover-logos img {
+  max-height: 82px;
+  width: auto;
+  object-fit: contain;
+}
+.reveal .cover-title {
+  transform: translateY(-80px); /* mueve el elemento hacia arriba */
+  font-size: 1.65em;
+  font-weight: 750;
+  line-height: 1.12;
+  color: #0f172a;
+  max-width: 1200px;
+  margin: 0 auto 28px auto;
+  text-align: center;
+}
+.reveal .cover-title::after {
+  content: "";
+  display: block;
+  width: 520px;
+  height: 4px;
+  margin: 30px auto 0 auto;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    #163a2b 0%,
+    #2e7d32 45%,
+    #74c69d 100%
+  );
+}
+.reveal .cover-subtitle {
+  transform: translateY(-75px);
+  font-size: .82em;
+  color: #334155;
+  margin-bottom: 20px;
+}
+.reveal .cover-author {
+  transform: translateY(-80px);
+  font-size: .90em;
+  font-weight: 700;
+  color: #1b4332;
+  margin-bottom: 20px;
+}
+.reveal .cover-info {
+  transform: translateY(-80px);
+  font-size: .56em;
+  line-height: 1.45;
+  color: #475569;
+  max-width: 1250px;
+  margin: 0 auto 26px auto;
+}
+/* Afiliación */
+.reveal .cover-affiliation {
+  transform: translateY(-100px);
+  font-size: .58em;
+  line-height: 1.35;
+  color: #334155;
+  margin-top: 0px;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+/* Universidad + fecha */
+.reveal .cover-university {
+  transform: translateY(-100px);
+  font-size: .52em;
+  line-height: 1.30;
+  color: #64748b;
+  letter-spacing: .02em;
+  margin-top: 8px;
+}
+
+/* REGLAS PARA CENTRAR ELEMENTOS */
+
+.reveal .cover-logos,
+.reveal .cover-title,
+.reveal .cover-subtitle,
+.reveal .cover-author,
+.reveal .cover-info,
+.reveal .cover-affiliation,
+.reveal .cover-university {
+  width: 100%;
+  max-width: 1250px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   CABECERA RESPONSIVE CON IMAGEN + LÍNEA
+   ============================================================ */
+
+.reveal .slides section.con-cabecera {
+  padding-top: calc(clamp(100px, 8vh, 150px) + 18px);/* mueve el contenido hacia abajo para que la diapo comiece más abajo.*/
+  background-image:
+    /* url("../../../../../Imagenes/marca_UPV_principal_color.svg"),
+    url("../../../../../Imagenes/IUMPA_hor_cas_color.svg"),*/
+    url("../../../../../Imagenes/Marca_UPV_IUMPA_unificado.svg"),
+    url("../../../../../Imagenes/CabeceraEstelaBalon10.png") !important;
+  background-repeat:
+    no-repeat,
+    no-repeat,
+    no-repeat !important;
+  background-size:
+    auto clamp(34px,5vh,150px),     /* UPV */
+    /*auto clamp(34px,4.2vh,50px),*/     /* IUMPA */
+    auto clamp(100px, 8vh, 150px) !important;/* clamp(mínimo, ideal, máximo), 1vh = 1% del alto visible de pantalla*/
+  background-position:
+    left 1.0vw top 2.0vh,            /* UPV */
+    /*left 10.0vw top 2.0vh,*/            /* IUMPA */
+    right 2vw top 0 !important;      /* estela */ /* background-position: horizontal vertical;*/ /* */ 
+}
+
+.reveal .slides section.con-cabecera::after {
+  content: "";
+  position: absolute;
+  top: calc(clamp(100px, 8vh, 150px) - 20px);
+  left: 6vw;
+  right: 2vw;
+  height: clamp(2px, .25vh, 4px);
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    rgba(22,58,43,.95) 0%,
+    rgba(46,125,50,.85) 50%,
+    rgba(116,198,157,.55) 100%
+  );
+  z-index: 10;
+}
+
+/* ------------------------------------------------------------
+   TÍTULO AUTOMÁTICO RESPONSIVE
+   ------------------------------------------------------------ */
+.reveal .slides section.con-cabecera > h1:first-child,
+.reveal .slides section.con-cabecera > h2:first-child,
+.reveal .slides section.con-cabecera > h3:first-child {
+  position: absolute;
+  top: 1.8vh;
+    /*left: clamp(180px,18vw,270px);*/
+  left: clamp(250px,25vw,320px);
+  right: 4vw;
+  margin: 0;
+
+  /*font-size: clamp(.55em, 1.15vw, .78em);*/
+  font-size: clamp(.70em, 1.40vw, 1.00em);
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: #1b4332;
+  text-shadow: 0 0 8px rgba(255,255,255,.75);
+  border: none !important;
+  text-align: left;
+  z-index: 25;
+}
+
+
+/* Y sustituye también el bloque de ocultar título por este:
+.reveal .slides section.con-cabecera > h1:first-child,
+.reveal .slides section.con-cabecera > h2:first-child,
+.reveal .slides section.con-cabecera > h3:first-child {
+  opacity: 1;
+  height: auto;
+}
+*/
+
+
+/* Con position:absolute, el título ya sale de su flujo normal y no ocupa el espacio grande original
+.reveal .slides section.con-cabecera > h1:first-child,
+.reveal .slides section.con-cabecera > h2:first-child,
+.reveal .slides section.con-cabecera > h3:first-child {
+  position: absolute;
+}
+*/
+
+/* ------------------------------------------------------------
+   OCULTAR TITULO GRANDE ORIGINAL
+   ------------------------------------------------------------ */
+/*
+.reveal .slides > section:not(.title-slide) > h1,
+.reveal .slides > section:not(.title-slide) > h2 {
+  opacity: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+*/
+
+
+/* ============================================================
+   FOOTBALL ICON BOX
+   ============================================================ */
+
+.reveal .box-football {
+  position: relative;
+/*  background: linear-gradient(
+    135deg,
+    #f6fff8 0%,
+    #edfdf1 100%
+  );*/
+  border-left: 7px solid #2e7d32;
+  border-radius: 14px;
+  font-size: .85em;
+  padding:  .45em .75em .45em 2.6em;
+  margin: 1em 0  .50em 0;
+  box-shadow: 0 5px 16px rgba(46,125,50,.12);
+  line-height: 1.28;
+  transition: all .25s ease;
+}
+
+/* Optional hover effect */
+
+.reveal .box-football:hover {
+  background: linear-gradient(
+    135deg,
+/*  #eaf7ee 0%,
+    #d5f0de 100% */
+    #f6fff8 0%,
+    #edfdf1 100%
+  );
+  border-left-color: #1b5e20;
+  box-shadow:
+    0 10px 24px rgba(46,125,50,.18),
+    0 0 12px rgba(76,175,80,.18);
+  transform:
+    translateY(-2px)
+    scale(1.01);
+}
+
+/* Optional icon effect */
+
+.reveal .box-football-icon{
+  @extend .box-football;
+}
+.reveal .box-football-icon::before {
+  content: "⚽";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%) rotate(8deg) scale(1.12);
+  font-size: 1.25em;
+  color: #2e7d32;
+  opacity: .95;
+}
+
+/* ============================================================
+   ROADMAP / INDICE
+   ============================================================ */
+
+.reveal .roadmap {
+  font-size: .85em;
+  line-height: 1.55;
+  margin-top: .8em;
+}
+.reveal .roadmap ul {
+  list-style: none;
+  padding-left: 0;
+}
+.reveal .roadmap li {
+  color: #475569;
+  filter: saturate(.55);
+  transition: all .25s ease;
+}
+.reveal .roadmap .active {
+  filter: none;
+  color: #1b4332;
+  font-weight: 700;
+  text-shadow:
+    0 0 6px rgba(46,125,50,.14);
+}
+.reveal .roadmap li:not(:has(.active)) {
+  opacity: .35;
+}
+
+
+/* ============================================================
+   TOOL LIST
+   ============================================================ */
+
+.reveal .tool-list {
+  width: min(88%, 1200px);
+  margin-top:
+    clamp(.15em, 0.25vh, 0.5em);
+  margin-left:
+    auto;
+  margin-right:
+    auto;
+  font-size: .78em;  
+}
+.reveal .tool-list ul {
+  padding-left: 0;
+  margin: 0;
+  list-style: none;
+}
+.reveal .tool-list li {
+  position: relative;
+  /* background:
+    rgba(248,250,252,.92);*/
+  /*border-left:
+    5px solid #2e7d32;*/
+  border-left: 6px solid #2e7d32;
+  border-radius:
+    10px;
+  padding:
+    clamp(.70em,1.0vh,1.0em)
+    clamp(.25em,0.5vw,0.5em)
+    clamp(.70em,1.0vh,1.0em)
+    2.0em;
+  margin-bottom:
+    clamp(.7em,1.2vh,1.4em);
+  color:
+    #334155;
+  line-height:
+    1.32;
+  box-shadow:
+    0 4px 12px rgba(15,23,42,.06);
+}
+
+/* Marcador verde */
+
+.reveal .tool-list li::before {
+  content: "▶";
+  position: absolute;
+  left: .75em;
+  top: .55em;
+  color:
+    #2e7d32;
+  font-size:
+    1.1em;
+  font-weight:
+    700;
+}
+
+.reveal .tool-list strong {
+  color: #1b4332;
+  font-weight: 700;
+}
+
+/* ============================================================
+   IMAGENES EN SLIDES
+   ============================================================ */
+/* Contenedor */
+
+.reveal .img-slide {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  /* align-items: center;*/
+  /* width: 100%;*/
+  height: calc(100vh - clamp(100px, 8vh, 150px));
+}
+
+.reveal .img-slide img {
+  display: block;
+
+  max-width: 100%;
+  max-height: 80vh;
+
+  width: auto;
+  height: auto;
+
+  margin-left: auto;
+  margin-right: auto;
+
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.12);
+}
+
+/* ============================================================
+   DATA BOX
+   ============================================================ */
+
+.reveal .data-box {
+  border-left: 6px solid #2e7d32;
+  border-radius: 10px;
+  padding: 0.8em 1em;
+  box-shadow:
+    0 2px 8px rgba(15,23,42,.05);
+  min-height: 220px;
+}
+
+.reveal .data-box ul {
+  margin-top: .4em;
+}
+
+/* ============================================================
+   DATA BOX PARA TODA LA SLIDE Y PODER REDUCIRLA
+   ============================================================ */
+.reveal .slides section.slide-data .data-box {
+  min-height: 150px !important;
+  font-size: 0.92em;
+  padding: 0.40em 0.6em;
+}
+
+
+/* ============================================================
+   THESIS DATA
+   ============================================================ */
+
+.reveal .thesis-data {
+  width: 92%;
+  margin: 1.2em auto 0 auto;
+  border-top:
+    3px solid #2e7d32;
+  padding-top:
+    .8em;
+  text-align: center;
+  font-size:
+    .82em;
+}
+
+/* ============================================================
+   XML (para los archivo include de código xml)
+   ============================================================ */
+.reveal .xml-box {
+  min-height: 65vh;
+}
+.reveal .slide-xml pre {
+  height: 90vh !important;
+  max-height: 95vh !important;
+  overflow: auto !important;
+}
+
+.reveal .slide-xml pre code {
+  max-height: none !important;
+  height: 100% !important;
+  font-size: 0.75em !important;
+  line-height: 1.0 !important;
+  overflow: visible !important;
+}
+
+/* ============================================================
+   VIDEO EN RESPONSIVE Y LUEGO CENTRADO
+   ============================================================ */
+.reveal video {
+  max-width: 100%;
+  max-height: 65vh;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.12);
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}

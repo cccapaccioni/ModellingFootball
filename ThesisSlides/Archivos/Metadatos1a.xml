@@ -1,0 +1,17 @@
+<main xmlns:tns="FIFADataTransferFormatEPTSNamespace/FIFADataTransferFormatEPTS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="FIFADataTransferFormatEPTSNamespace/FIFADataTransferFormatEPTS FIFADataTransferFormatEPTS.xsd">
+  <Metadata>
+    <GlobalConfig>
+    </GlobalConfig>
+    <Sessions>
+    </Sessions>
+    <Teams>
+    </Teams>
+    <Players>
+    </Players>
+    <Devices>
+    </Devices>
+    <PlayerChannels>
+    </PlayerChannels>
+  </Metadata>
+  <DataFormatSpecifications>
+  </DataFormatSpecifications>

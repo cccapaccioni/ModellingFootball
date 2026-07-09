@@ -1,0 +1,106 @@
+{
+	"data": [
+	],
+		{
+			"index": 1,
+			"team": {
+				"name": "Team A",
+				"id": "FIFATMA"
+			},
+			"type": {
+				"name": "SET PIECE",
+				"id": 5
+			},
+			"subtypes": {
+				"name": "KICK OFF",
+				"id": 35
+			},
+			"start": {
+				"frame": 361,
+				"time": 14.44,
+				"x": null,
+				"y": null
+			},
+			"end": {
+				"frame": 361,
+				"time": 14.44,
+				"x": null,
+				"y": null
+			},
+			"period": 1,
+			"from": {
+				"name": "Player 10",
+				"id": "P3577"
+			},
+			"to": null
+		},
+		{
+			"index": 2,
+			"team": {
+				"name": "Team A",
+				"id": "FIFATMA"
+			},
+			"type": {
+				"name": "PASS",
+				"id": 1
+			},
+			"subtypes": null,
+			"start": {
+				"frame": 361,
+				"time": 14.44,
+				"x": 0.50125,
+				"y": 0.48725
+			},
+			"end": {
+				"frame": 377,
+				"time": 15.08,
+				"x": 0.49864,
+				"y": 0.48705
+			},
+			"period": 1,
+			"from": {
+				"name": "Player 10",
+				"id": "P3577"
+			},
+			"to": {
+				"name": "Player 7",
+				"id": "P3574"
+			}
+		},
+		{
+			"index": 3,
+			"team": {
+				"name": "Team A",
+				"id": "FIFATMA"
+			},
+			"type": {
+				"name": "CARRY",
+				"id": 10
+			},
+			"subtypes": null,
+			"start": {
+				"frame": 377,
+				"time": 15.08,
+				"x": 0.49864,
+				"y": 0.48705
+			},
+			"end": {
+				"frame": 384,
+				"time": 15.36,
+				"x": 0.497,
+				"y": 0.485
+			},
+			"period": 1,
+			"from": {
+				"name": "Player 7",
+				"id": "P3574"
+			},
+			"to": null
+		},
+		...
+		...
+		{
+		},
+	"metadata": [
+	]
+}
